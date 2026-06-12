@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manager Dashboard — ExpertSystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">💼</div>
+      <span>ExpertSystem</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Overview</div>
+        <div class="nav-item active" data-page="manager-dashboard" onclick="showSection('dashboard')">
+          <span class="nav-icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="showSection('tasks')">
+          <span class="nav-icon">✅</span> All Tasks
+          <span class="nav-badge" id="nav-overdue-count"></span>
+        </div>
+        <div class="nav-item" onclick="showSection('analytics')">
+          <span class="nav-icon">📈</span> Analytics
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Actions</div>
+        <div class="nav-item" onclick="openCreateTaskModal()">
+          <span class="nav-icon">➕</span> New Task
+        </div>
+        <div class="nav-item" onclick="showSection('employees')">
+          <span class="nav-icon">👥</span> Employees
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="sidebar-user-info">
+        <div class="sidebar-avatar-wrap"></div>
+        <div>
+          <div class="sidebar-user-name">Loading...</div>
+          <div class="sidebar-user-role">manager</div>
+        </div>
+      </div>
+      <button class="btn logout-btn">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 id="page-title">Manager Dashboard</h2>
+        <p id="page-subtitle">Overview of all tasks and team performance</p>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="theme-toggle">🌙</button>
+        <button class="btn btn-primary btn-sm" onclick="openCreateTaskModal()">+ New Task</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD SECTION -->
+      <section id="section-dashboard">
+        <div class="stats-grid" id="stats-grid">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Recent Tasks</span><button class="btn btn-outline btn-sm" onclick="showSection('tasks')">View All</button></div>
+            <div class="card-body" id="recent-tasks-list"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Team Performance</span></div>
+            <div class="card-body" id="team-perf-list"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TASKS SECTION -->
+      <section id="section-tasks" style="display:none">
+        <div class="filters-bar">
+          <div class="search-input">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="form-control" id="task-search" placeholder="Search tasks..." oninput="filterTasks()" />
+          </div>
+          <select class="filter-select" id="filter-status" onchange="filterTasks()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="overdue">Overdue</option>
+          </select>
+          <select class="filter-select" id="filter-priority" onchange="filterTasks()">
+            <option value="">All Priority</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <button class="btn btn-primary" onclick="openCreateTaskModal()">+ New Task</button>
+        </div>
+        <div class="tasks-grid" id="tasks-list"></div>
+      </section>
+
+      <!-- ANALYTICS SECTION -->
+      <section id="section-analytics" style="display:none">
+        <div class="stats-grid" id="analytics-stats"></div>
+        <div class="card" style="margin-top:1rem">
+          <div class="card-header"><span class="card-title">Employee Performance Report</span></div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Employee</th><th>Department</th><th>Total</th><th>Completed</th><th>Overdue</th><th>Avg Progress</th><th>Completion Rate</th></tr>
+                </thead>
+                <tbody id="analytics-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EMPLOYEES SECTION -->
+      <section id="section-employees" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">All Employees</span></div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Last Active</th><th>Action</th></tr></thead>
+                <tbody id="employees-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- CREATE / EDIT TASK MODAL -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Create New Task</span>
+      <button class="modal-close" onclick="ui.hideModal('task-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="task-id" />
+      <div class="form-group"><label>Title *</label><input type="text" id="task-title" class="form-control" placeholder="Task title..." required /></div>
+      <div class="form-group"><label>Description</label><textarea id="task-desc" class="form-control" rows="3" placeholder="Describe the task..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Deadline *</label><input type="date" id="task-deadline" class="form-control" required /></div>
+        <div class="form-group">
+          <label>Priority *</label>
+          <select id="task-priority" class="form-control">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Assign To *</label>
+        <select id="task-employee" class="form-control"><option value="">Loading employees...</option></select>
+      </div>
+      <div class="form-group"><label>Tags (comma-separated)</label><input type="text" id="task-tags" class="form-control" placeholder="frontend, urgent, review" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="ui.hideModal('task-modal')">Cancel</button>
+      <button class="btn btn-primary" id="save-task-btn" onclick="saveTask()">Create Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW TASK DETAIL MODAL -->
+<div class="modal-overlay" id="task-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="detail-title">Task Details</span>
+      <button class="modal-close" onclick="ui.hideModal('task-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="task-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="ui.hideModal('task-detail-modal')">Close</button>
+      <button class="btn btn-outline" id="edit-from-detail-btn">Edit Task</button>
+      <button class="btn btn-danger btn-sm" id="delete-from-detail-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  // Auth guard
+  if (!auth.isLoggedIn() || !auth.isManager()) { auth.logout(); }
+
+  let allTasks = [], allEmployees = [];
+
+  // ===== SECTION NAV =====
+  function showSection(name) {
+    ['dashboard','tasks','analytics','employees'].forEach(s => {
+      document.getElementById(`section-${s}`).style.display = s === name ? 'block' : 'none';
+    });
+    const titles = { dashboard: ['Manager Dashboard','Overview of all tasks and team performance'], tasks: ['All Tasks','Manage and track team tasks'], analytics: ['Analytics','Employee performance and task statistics'], employees: ['Employees','View all team members'] };
+    document.getElementById('page-title').textContent = titles[name][0];
+    document.getElementById('page-subtitle').textContent = titles[name][1];
+    if (name === 'analytics') loadAnalytics();
+    if (name === 'employees') loadEmployees();
+    if (name === 'tasks') renderAllTasks();
+  }
+
+  // ===== LOAD DATA =====
+  async function loadDashboard() {
+    try {
+      const [tasksRes, analyticsRes] = await Promise.all([api.get('/tasks'), api.get('/tasks/analytics')]);
+      allTasks = tasksRes.tasks;
+      renderStatsGrid(analyticsRes.analytics.summary);
+      renderRecentTasks();
+      renderTeamPerf(analyticsRes.analytics.employeeStats);
+      const overdue = allTasks.filter(t => t.status === 'overdue').length;
+      const badge = document.getElementById('nav-overdue-count');
+      if (overdue > 0 && badge) { badge.textContent = overdue; badge.style.display = ''; } else if (badge) badge.style.display = 'none';
+    } catch (err) { ui.toast('Error loading dashboard: ' + err.message, 'error'); }
+  }
+
+  function renderStatsGrid(s) {
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-icon blue">📋</div><div><div class="stat-value">${s.totalTasks}</div><div class="stat-label">Total Tasks</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value">${s.completedTasks}</div><div class="stat-label">Completed</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">⚡</div><div><div class="stat-value">${s.inProgressTasks}</div><div class="stat-label">In Progress</div></div></div>
+      <div class="stat-card"><div class="stat-icon yellow">⏳</div><div><div class="stat-value">${s.pendingTasks}</div><div class="stat-label">Pending</div></div></div>
+      <div class="stat-card"><div class="stat-icon red">🔥</div><div><div class="stat-value">${s.overdueTasks}</div><div class="stat-label">Overdue</div></div></div>
+    `;
+  }
+
+  function renderRecentTasks() {
+    const recent = [...allTasks].sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)).slice(0,5);
+    document.getElementById('recent-tasks-list').innerHTML = recent.length ? recent.map(taskCardSmall).join('') : '<div class="empty-state"><div class="empty-icon">📋</div><p>No tasks yet</p></div>';
+  }
+
+  function taskCardSmall(t) {
+    return `<div class="task-card priority-${t.priority}" onclick="viewTask('${t._id}')">
+      <div class="task-card-header">
+        <span class="task-title">${t.title}</span>
+        ${ui.statusBadge(t.status)}
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.4rem">
+        <div class="progress-bar-wrap"><div class="progress-bar ${ui.progressColor(t.progress)}" style="width:${t.progress}%"></div></div>
+        <span class="progress-label">${t.progress}%</span>
+      </div>
+      <div class="task-meta" style="margin-top:0.5rem">
+        <span>👤 ${t.assignedTo?.name||'—'}</span>
+        <span>📅 ${ui.daysLeft(t.deadline)}</span>
+      </div>
+    </div>`;
+  }
+
+  function renderTeamPerf(stats) {
+    const el = document.getElementById('team-perf-list');
+    if (!stats.length) { el.innerHTML = '<div class="empty-state"><p>No employee data</p></div>'; return; }
+    el.innerHTML = stats.map(e => `
+      <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+        ${ui.avatarHtml(e.name)}
+        <div style="flex:1">
+          <div style="font-size:0.88rem;font-weight:600">${e.name}</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary)">${e.completedTasks}/${e.totalTasks} tasks</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:0.88rem;font-weight:700;color:var(--accent)">${e.completionRate||0}%</div>
+          <div style="font-size:0.72rem;color:var(--text-muted)">completion</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ===== ALL TASKS =====
+  function filterTasks() {
+    const search = document.getElementById('task-search').value.toLowerCase();
+    const status = document.getElementById('filter-status').value;
+    const priority = document.getElementById('filter-priority').value;
+    const filtered = allTasks.filter(t => {
+      const matchSearch = !search || t.title.toLowerCase().includes(search) || t.description?.toLowerCase().includes(search);
+      const matchStatus = !status || t.status === status;
+      const matchPriority = !priority || t.priority === priority;
+      return matchSearch && matchStatus && matchPriority;
+    });
+    renderTasksList(filtered);
+  }
+
+  function renderAllTasks() {
+    if (!allTasks.length) { loadDashboard().then(() => renderTasksList(allTasks)); return; }
+    renderTasksList(allTasks);
+  }
+
+  function renderTasksList(tasks) {
+    const el = document.getElementById('tasks-list');
+    if (!tasks.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No tasks match your filters</p></div>'; return; }
+    el.innerHTML = tasks.map(t => `
+      <div class="task-card priority-${t.priority}" onclick="viewTask('${t._id}')">
+        <div class="task-card-header">
+          <span class="task-title">${t.title}</span>
+          <div style="display:flex;gap:0.4rem">${ui.priorityBadge(t.priority)} ${ui.statusBadge(t.status)}</div>
+        </div>
+        <p class="task-desc">${t.description||'No description'}</p>
+        <div class="task-meta">
+          <span class="task-meta-item">👤 ${t.assignedTo?.name||'—'}</span>
+          <span class="task-meta-item">📅 ${ui.formatDate(t.deadline)}</span>
+          <span class="task-meta-item">${ui.daysLeft(t.deadline)}</span>
+        </div>
+        <div class="task-footer">
+          <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+            <div class="progress-bar-wrap"><div class="progress-bar ${ui.progressColor(t.progress)}" style="width:${t.progress}%"></div></div>
+            <span class="progress-label">${t.progress}%</span>
+          </div>
+          <div style="display:flex;gap:0.4rem" onclick="event.stopPropagation()">
+            <button class="btn btn-icon btn-sm" title="Edit" onclick="openEditTask('${t._id}')">✏️</button>
+            <button class="btn btn-icon btn-sm" title="Delete" onclick="deleteTask('${t._id}')">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ===== ANALYTICS =====
+  async function loadAnalytics() {
+    try {
+      const res = await api.get('/tasks/analytics');
+      const s = res.analytics.summary;
+      const rate = s.totalTasks ? Math.round(s.completedTasks/s.totalTasks*100) : 0;
+      document.getElementById('analytics-stats').innerHTML = `
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div><div class="stat-value">${s.totalTasks}</div><div class="stat-label">Total Tasks</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value">${rate}%</div><div class="stat-label">Completion Rate</div></div></div>
+        <div class="stat-card"><div class="stat-icon red">🔥</div><div><div class="stat-value">${s.overdueTasks}</div><div class="stat-label">Overdue Tasks</div></div></div>
+        <div class="stat-card"><div class="stat-icon yellow">⚡</div><div><div class="stat-value">${s.inProgressTasks}</div><div class="stat-label">In Progress</div></div></div>
+      `;
+      document.getElementById('analytics-table').innerHTML = res.analytics.employeeStats.map(e => `
+        <tr>
+          <td>${ui.avatarHtml(e.name)} <span style="margin-left:0.5rem">${e.name}</span></td>
+          <td>${e.department||'—'}</td>
+          <td>${e.totalTasks}</td>
+          <td><span style="color:var(--success);font-weight:600">${e.completedTasks}</span></td>
+          <td><span style="color:${e.overdueTasks>0?'var(--danger)':'inherit'};font-weight:600">${e.overdueTasks}</span></td>
+          <td>
+            <div class="perf-rate">
+              <div class="progress-bar-wrap" style="width:80px"><div class="progress-bar ${ui.progressColor(e.avgProgress)}" style="width:${e.avgProgress}%"></div></div>
+              ${e.avgProgress}%
+            </div>
+          </td>
+          <td><strong style="color:var(--accent)">${e.completionRate||0}%</strong></td>
+        </tr>
+      `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary)">No data available</td></tr>';
+    } catch (err) { ui.toast('Error loading analytics', 'error'); }
+  }
+
+  // ===== EMPLOYEES =====
+  async function loadEmployees() {
+    try {
+      const res = await api.get('/users/employees');
+      document.getElementById('employees-table').innerHTML = res.employees.map(e => `
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:0.5rem">${ui.avatarHtml(e.name)}<span>${e.name}</span></div></td>
+          <td>${e.email}</td>
+          <td>${e.department||'—'}</td>
+          <td>${e.lastLogin ? ui.formatDate(e.lastLogin) : 'Never'}</td>
+          <td><button class="btn btn-outline btn-sm" onclick="openCreateTaskModal('${e._id}')">Assign Task</button></td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">No employees found</td></tr>';
+    } catch (err) { ui.toast('Error loading employees', 'error'); }
+  }
+
+  // ===== CREATE / EDIT TASK =====
+  async function openCreateTaskModal(preSelectEmployee = '') {
+    document.getElementById('modal-title').textContent = 'Create New Task';
+    document.getElementById('save-task-btn').textContent = 'Create Task';
+    document.getElementById('task-id').value = '';
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-desc').value = '';
+    document.getElementById('task-deadline').value = '';
+    document.getElementById('task-priority').value = 'medium';
+    document.getElementById('task-tags').value = '';
+    await loadEmployeeSelect(preSelectEmployee);
+    ui.showModal('task-modal');
+  }
+
+  async function openEditTask(id) {
+    const task = allTasks.find(t => t._id === id);
+    if (!task) return;
+    document.getElementById('modal-title').textContent = 'Edit Task';
+    document.getElementById('save-task-btn').textContent = 'Update Task';
+    document.getElementById('task-id').value = task._id;
+    document.getElementById('task-title').value = task.title;
+    document.getElementById('task-desc').value = task.description || '';
+    document.getElementById('task-deadline').value = task.deadline?.split('T')[0] || '';
+    document.getElementById('task-priority').value = task.priority;
+    document.getElementById('task-tags').value = task.tags?.join(', ') || '';
+    await loadEmployeeSelect(task.assignedTo?._id);
+    ui.showModal('task-modal');
+    ui.hideModal('task-detail-modal');
+  }
+
+  async function loadEmployeeSelect(preSelect = '') {
+    const select = document.getElementById('task-employee');
+    select.innerHTML = '<option value="">Loading...</option>';
+    try {
+      if (!allEmployees.length) {
+        const res = await api.get('/users/employees');
+        allEmployees = res.employees;
+      }
+      select.innerHTML = '<option value="">Select employee</option>' + allEmployees.map(e => `<option value="${e._id}" ${e._id === preSelect ? 'selected' : ''}>${e.name} (${e.department||'General'})</option>`).join('');
+    } catch { select.innerHTML = '<option value="">Error loading</option>'; }
+  }
+
+  async function saveTask() {
+    const btn = document.getElementById('save-task-btn');
+    const id = document.getElementById('task-id').value;
+    const data = {
+      title: document.getElementById('task-title').value.trim(),
+      description: document.getElementById('task-desc').value.trim(),
+      deadline: document.getElementById('task-deadline').value,
+      priority: document.getElementById('task-priority').value,
+      assignedTo: document.getElementById('task-employee').value,
+      tags: document.getElementById('task-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    };
+    if (!data.title || !data.deadline || !data.assignedTo) { ui.toast('Please fill all required fields', 'warning'); return; }
+    ui.setLoading(btn, true);
+    try {
+      if (id) { await api.put(`/tasks/${id}`, data); ui.toast('Task updated!', 'success'); }
+      else { await api.post('/tasks', data); ui.toast('Task created!', 'success'); }
+      ui.hideModal('task-modal');
+      await loadDashboard();
+      renderAllTasks();
+    } catch (err) { ui.toast(err.message, 'error'); }
+    ui.setLoading(btn, false);
+  }
+
+  // ===== VIEW TASK =====
+  async function viewTask(id) {
+    try {
+      const res = await api.get(`/tasks/${id}`);
+      const t = res.task;
+      document.getElementById('detail-title').textContent = t.title;
+      document.getElementById('task-detail-body').innerHTML = `
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">${ui.priorityBadge(t.priority)} ${ui.statusBadge(t.status)}</div>
+        <p style="color:var(--text-secondary);margin-bottom:1rem">${t.description||'No description provided.'}</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem">
+          <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:var(--radius-sm)"><div style="font-size:0.75rem;color:var(--text-muted)">Assigned To</div><div style="font-weight:600;margin-top:2px">${t.assignedTo?.name||'—'}</div></div>
+          <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:var(--radius-sm)"><div style="font-size:0.75rem;color:var(--text-muted)">Deadline</div><div style="font-weight:600;margin-top:2px">${ui.formatDate(t.deadline)}</div></div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.4rem"><span style="color:var(--text-secondary)">Progress</span><span style="font-weight:600">${t.progress}%</span></div>
+          <div class="progress-bar-wrap" style="height:10px"><div class="progress-bar ${ui.progressColor(t.progress)}" style="width:${t.progress}%"></div></div>
+        </div>
+        ${t.tags?.length ? `<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1rem">${t.tags.map(tag => `<span style="background:var(--accent-light);color:var(--accent);font-size:0.75rem;padding:2px 10px;border-radius:99px">#${tag}</span>`).join('')}</div>` : ''}
+        <div style="margin-top:1rem">
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem">Comments (${t.comments?.length||0})</div>
+          ${t.comments?.length ? t.comments.map(c=>`<div style="border-left:2px solid var(--border);padding:0.5rem 0.75rem;margin-bottom:0.5rem"><div style="font-size:0.8rem;font-weight:600">${c.userName}</div><div style="font-size:0.82rem;color:var(--text-secondary)">${c.text}</div></div>`).join('') : '<p style="color:var(--text-muted);font-size:0.82rem">No comments yet.</p>'}
+          <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
+            <input type="text" id="comment-input" class="form-control" placeholder="Add a comment..." style="flex:1" />
+            <button class="btn btn-primary btn-sm" onclick="addComment('${t._id}')">Send</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('edit-from-detail-btn').onclick = () => openEditTask(id);
+      document.getElementById('delete-from-detail-btn').onclick = () => { ui.hideModal('task-detail-modal'); deleteTask(id); };
+      ui.showModal('task-detail-modal');
+    } catch (err) { ui.toast('Error loading task', 'error'); }
+  }
+
+  // ===== DELETE TASK =====
+  async function deleteTask(id) {
+    if (!confirm('Delete this task? This cannot be undone.')) return;
+    try {
+      await api.delete(`/tasks/${id}`);
+      ui.toast('Task deleted', 'success');
+      await loadDashboard();
+      renderAllTasks();
+    } catch (err) { ui.toast(err.message, 'error'); }
+  }
+
+  // ===== ADD COMMENT =====
+  async function addComment(taskId) {
+    const input = document.getElementById('comment-input');
+    if (!input?.value.trim()) return;
+    try {
+      await api.post(`/tasks/${taskId}/comments`, { text: input.value.trim() });
+      ui.toast('Comment added!', 'success');
+      viewTask(taskId);
+    } catch (err) { ui.toast(err.message, 'error'); }
+  }
+
+  // Init
+  setupSidebar('manager');
+  loadDashboard();
+</script>
+</body>
+</html>
