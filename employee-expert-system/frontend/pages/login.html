@@ -1,25 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login — Employee Expert System</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+
   <style>
-    .auth-divider { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin: 1rem 0; position: relative; }
-    .auth-divider::before, .auth-divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: var(--border); }
-    .auth-divider::before { left: 0; } .auth-divider::after { right: 0; }
-    .demo-creds { background: var(--bg-secondary); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-secondary); margin-top: 1rem; }
-    .demo-creds strong { display: block; color: var(--text-primary); margin-bottom: 0.25rem; }
-    .demo-creds p { margin-bottom: 2px; }
-    .page-hidden { display: none; }
+    .page-hidden {
+      display: none !important;
+    }
+
+    .validation-error {
+      display: block;
+      color: #dc2626;
+      font-size: 0.8rem;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .validation-error:empty {
+      display: none;
+    }
+
+    .password-hint,
+    .role-hint {
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin-top: 5px;
+    }
+
+    .auth-divider {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin: 1rem 0;
+      position: relative;
+    }
+
+    .demo-creds {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+    }
+
+    .validation-invalid {
+      border-color: #dc2626 !important;
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
   </style>
 </head>
+
 <body>
   <div class="auth-page">
     <div class="auth-card">
+
+      <!-- Logo -->
       <div class="auth-logo">
         <div class="logo-icon">💼</div>
         <div>
@@ -28,124 +76,580 @@
         </div>
       </div>
 
-      <!-- Tab switch -->
+      <!-- Tabs -->
       <div class="auth-tab-group">
-        <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
-        <button class="auth-tab" onclick="switchTab('signup')">Sign Up</button>
+        <button type="button" class="auth-tab active" onclick="switchTab('login')">
+          Sign In
+        </button>
+
+        <button type="button" class="auth-tab" onclick="switchTab('signup')">
+          Sign Up
+        </button>
       </div>
 
-      <!-- LOGIN FORM -->
+      <!-- LOGIN -->
       <div id="login-form">
         <h2 class="auth-title">Welcome back</h2>
         <p class="auth-subtitle">Sign in to your account</p>
-        <form onsubmit="handleLogin(event)">
-          <div class="form-group">
-            <label>Email address</label>
-            <input type="email" id="login-email" class="form-control" placeholder="you@company.com" required />
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required />
-          </div>
-          <button type="submit" id="login-btn" class="btn btn-primary btn-full" style="margin-top:0.5rem">Sign In →</button>
-        </form>
-        
 
-      <!-- SIGNUP FORM -->
+        <form id="loginForm" novalidate>
+
+          <div class="form-group">
+            <label for="login-email">Email address</label>
+            <input type="email" id="login-email" class="form-control" placeholder="you@company.com"
+              autocomplete="username" maxlength="254" required aria-describedby="login-email-error" />
+            <small id="login-email-error" class="validation-error" aria-live="polite"></small>
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="Enter your password"
+              autocomplete="current-password" required aria-describedby="login-password-error" />
+            <small id="login-password-error" class="validation-error" aria-live="polite"></small>
+          </div>
+
+          <div class="form-group">
+            <label for="login-role">Login as</label>
+            <select id="login-role" class="form-control" required>
+              <option value="employee">Employee</option>
+              <option value="manager">Manager</option>
+            </select>
+            <p class="role-hint">
+              Select the account type you want to access.
+            </p>
+          </div>
+
+          <button type="submit" id="login-btn" class="btn btn-primary btn-full" style="margin-top:0.5rem">
+            Sign In →
+          </button>
+        </form>
+      </div>
+
+      <!-- SIGNUP -->
       <div id="signup-form" class="page-hidden">
         <h2 class="auth-title">Create account</h2>
         <p class="auth-subtitle">Join your team workspace</p>
-        <form onsubmit="handleSignup(event)">
+
+        <form id="signupForm" novalidate>
+
           <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" id="signup-name" class="form-control" placeholder="John Doe" required />
+            <label for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" class="form-control" placeholder="John Doe" autocomplete="name"
+              maxlength="100" required aria-describedby="signup-name-error" />
+            <small id="signup-name-error" class="validation-error" aria-live="polite"></small>
           </div>
+
           <div class="form-row">
             <div class="form-group">
-              <label>Email</label>
-              <input type="email" id="signup-email" class="form-control" placeholder="you@company.com" required />
+              <label for="signup-email">Email address</label>
+              <input type="email" id="signup-email" class="form-control" placeholder="you@company.com"
+                autocomplete="email" maxlength="254" required aria-describedby="signup-email-error" />
+              <small id="signup-email-error" class="validation-error" aria-live="polite"></small>
             </div>
+
             <div class="form-group">
-              <label>Department</label>
-              <input type="text" id="signup-dept" class="form-control" placeholder="Engineering" />
+              <label for="signup-dept">Department</label>
+              <input type="text" id="signup-dept" class="form-control" placeholder="Engineering" maxlength="100" />
             </div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Password</label>
-              <input type="password" id="signup-password" class="form-control" placeholder="••••••••" required minlength="6" />
-            </div>
-            <div class="form-group">
-              <label>Role</label>
-              <select id="signup-role" class="form-control">
-                <option value="employee">Employee</option>
-                <option value="manager">Manager</option>
-              </select>
-            </div>
+
+          <div class="form-group">
+            <label for="signup-password">Create Password</label>
+            <input type="password" id="signup-password" class="form-control" placeholder="Create a strong password"
+              autocomplete="new-password" minlength="8" maxlength="128" required
+              aria-describedby="signup-password-hint signup-password-error" />
+
+            <p id="signup-password-hint" class="password-hint">
+              Password requirements:
+              <br />• At least 8 characters
+              <br />• One uppercase letter (A–Z)
+              <br />• One lowercase letter (a–z)
+              <br />• One number (0–9)
+              <br />• One special symbol (@, #, !, etc.)
+              <br />• No spaces
+            </p>
+
+            <small id="signup-password-error" class="validation-error" aria-live="polite"></small>
           </div>
-          <button type="submit" id="signup-btn" class="btn btn-primary btn-full" style="margin-top:0.5rem">Create Account →</button>
+
+
+          <div class="form-group">
+            <label for="signup-role">Account type</label>
+
+            <select id="signup-role" class="form-control" required>
+              <option value="employee" selected>Employee</option>
+              <option value="manager">Manager</option>
+            </select>
+
+            <p class="role-hint">
+              Select whether you are registering as an Employee or Manager.
+            </p>
+          </div>
+
+
+          <button type="submit" id="signup-btn" class="btn btn-primary btn-full" style="margin-top:0.5rem">
+            Create Account →
+          </button>
         </form>
       </div>
+
     </div>
   </div>
 
   <script src="../js/api.js"></script>
+
   <script>
-    // Redirect if already logged in
-    if (auth.isLoggedIn()) {
-      window.location.href = auth.isManager() ? 'manager-dashboard.html' : 'employee-dashboard.html';
+    "use strict";
+
+    // --------------------------------------------------
+    // EMAIL VALIDATION
+    // --------------------------------------------------
+
+    function isValidEmail(email) {
+      const value = email.trim();
+
+      if (!value || value.length > 254 || /\s/.test(value)) {
+        return false;
+      }
+
+      // Basic practical email format validation.
+      const emailPattern =
+        /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
+
+      if (!emailPattern.test(value)) {
+        return false;
+      }
+
+      const parts = value.split("@");
+      const localPart = parts[0];
+      const domain = parts[1];
+
+      // Reject consecutive dots and dots at the start/end.
+      if (
+        localPart.startsWith(".") ||
+        localPart.endsWith(".") ||
+        localPart.includes("..") ||
+        domain.includes("..")
+      ) {
+        return false;
+      }
+
+      // Require a suffix of at least two letters.
+      const suffix = domain.split(".").pop();
+
+      if (!/^[A-Za-z]{2,63}$/.test(suffix)) {
+        return false;
+      }
+
+      return true;
     }
 
-    function switchTab(tab) {
-      document.querySelectorAll('.auth-tab').forEach((t, i) => {
-        t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'signup'));
-      });
-      document.getElementById('login-form').classList.toggle('page-hidden', tab !== 'login');
-      document.getElementById('signup-form').classList.toggle('page-hidden', tab !== 'signup');
+    // --------------------------------------------------
+    // STRONG PASSWORD VALIDATION
+    // --------------------------------------------------
+
+    function isStrongPassword(password) {
+      return (
+        password.length >= 8 &&
+        password.length <= 128 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[0-9]/.test(password) &&
+        /[^A-Za-z0-9\s]/.test(password) &&
+        !/\s/.test(password)
+      );
     }
 
-    async function handleLogin(e) {
-      e.preventDefault();
-      const btn = document.getElementById('login-btn');
-      ui.setLoading(btn, true);
-      try {
-        const res = await api.post('/auth/login', {
-          email: document.getElementById('login-email').value,
-          password: document.getElementById('login-password').value,
-        });
-        auth.save(res.token, res.user);
-        ui.toast('Welcome back, ' + res.user.name + '!', 'success');
-        setTimeout(() => {
-          window.location.href = res.user.role === 'manager' ? 'manager-dashboard.html' : 'employee-dashboard.html';
-        }, 600);
-      } catch (err) {
-        ui.toast(err.message || 'Login failed', 'error');
-        ui.setLoading(btn, false);
+    // --------------------------------------------------
+    // FIELD ERROR HELPERS
+    // --------------------------------------------------
+
+    function showError(inputId, errorId, message) {
+      const input = document.getElementById(inputId);
+      const error = document.getElementById(errorId);
+
+      error.textContent = message;
+      input.classList.toggle("validation-invalid", Boolean(message));
+
+      if (message) {
+        input.setAttribute("aria-invalid", "true");
+      } else {
+        input.removeAttribute("aria-invalid");
       }
     }
 
-    async function handleSignup(e) {
-      e.preventDefault();
-      const btn = document.getElementById('signup-btn');
-      ui.setLoading(btn, true);
+    function clearErrors(formName) {
+      const form = document.getElementById(
+        formName === "login" ? "loginForm" : "signupForm"
+      );
+
+      form.querySelectorAll(".validation-error").forEach((element) => {
+        element.textContent = "";
+      });
+
+      form.querySelectorAll(".validation-invalid").forEach((element) => {
+        element.classList.remove("validation-invalid");
+        element.removeAttribute("aria-invalid");
+      });
+    }
+
+    function validateEmailField(inputId, errorId) {
+      const input = document.getElementById(inputId);
+      const email = input.value.trim();
+
+      if (!email) {
+        showError(inputId, errorId, "Email address is required.");
+        return false;
+      }
+
+      if (!isValidEmail(email)) {
+        showError(inputId, errorId, "Invalid email address.");
+        return false;
+      }
+
+      showError(inputId, errorId, "");
+      return true;
+    }
+
+    function validateSignupPassword() {
+      const input = document.getElementById("signup-password");
+
+      if (!input.value) {
+        showError(
+          "signup-password",
+          "signup-password-error",
+          "Password is required."
+        );
+        return false;
+      }
+
+      if (!isStrongPassword(input.value)) {
+        showError(
+          "signup-password",
+          "signup-password-error",
+          "Password must have at least 8 characters, uppercase and lowercase letters, a number, a special symbol, and no spaces."
+        );
+        return false;
+      }
+
+      showError("signup-password", "signup-password-error", "");
+      return true;
+    }
+
+    // --------------------------------------------------
+    // LIVE VALIDATION
+    // --------------------------------------------------
+
+    document.getElementById("login-email").addEventListener("input", () => {
+      const input = document.getElementById("login-email");
+
+      if (!input.value) {
+        showError("login-email", "login-email-error", "");
+      } else {
+        validateEmailField("login-email", "login-email-error");
+      }
+    });
+
+    document.getElementById("signup-email").addEventListener("input", () => {
+      const input = document.getElementById("signup-email");
+
+      if (!input.value) {
+        showError("signup-email", "signup-email-error", "");
+      } else {
+        validateEmailField("signup-email", "signup-email-error");
+      }
+    });
+
+    document.getElementById("login-password").addEventListener("input", () => {
+      showError("login-password", "login-password-error", "");
+    });
+
+    document.getElementById("signup-password").addEventListener("input", () => {
+      const input = document.getElementById("signup-password");
+
+      if (!input.value) {
+        showError("signup-password", "signup-password-error", "");
+      } else {
+        validateSignupPassword();
+      }
+    });
+
+    document.getElementById("signup-name").addEventListener("input", () => {
+      const name = document.getElementById("signup-name").value.trim();
+
+      showError(
+        "signup-name",
+        "signup-name-error",
+        name ? "" : "Full name is required."
+      );
+    });
+
+    // --------------------------------------------------
+    // TAB SWITCHING
+    // --------------------------------------------------
+
+    function switchTab(tab) {
+      clearErrors("login");
+      clearErrors("signup");
+
+      const isLogin = tab === "login";
+
+      document.getElementById("login-form")
+        .classList.toggle("page-hidden", !isLogin);
+
+      document.getElementById("signup-form")
+        .classList.toggle("page-hidden", isLogin);
+
+      document.querySelectorAll(".auth-tab").forEach((button, index) => {
+        button.classList.toggle(
+          "active",
+          (index === 0 && isLogin) ||
+          (index === 1 && !isLogin)
+        );
+      });
+    }
+
+    // --------------------------------------------------
+    // REDIRECT IF ALREADY LOGGED IN
+    // --------------------------------------------------
+
+    if (auth.isLoggedIn()) {
+      window.location.replace(
+        auth.isManager()
+          ? "manager-dashboard.html"
+          : "employee-dashboard.html"
+      );
+    }
+
+    // --------------------------------------------------
+    // LOGIN
+    // --------------------------------------------------
+
+    let loginInProgress = false;
+
+    document.getElementById("loginForm").addEventListener(
+      "submit",
+      handleLogin
+    );
+
+    async function handleLogin(event) {
+      event.preventDefault();
+
+      if (loginInProgress) return;
+
+      clearErrors("login");
+
+      const emailValid = validateEmailField(
+        "login-email",
+        "login-email-error"
+      );
+
+      const password = document.getElementById("login-password").value;
+
+      if (!password) {
+        showError(
+          "login-password",
+          "login-password-error",
+          "Password is required."
+        );
+      }
+
+      if (!emailValid || !password) {
+        if (!emailValid) {
+          document.getElementById("login-email").focus();
+        } else {
+          document.getElementById("login-password").focus();
+        }
+        return;
+      }
+
+      const email = document.getElementById("login-email").value.trim();
+      const selectedRole = document.getElementById("login-role").value;
+      const button = document.getElementById("login-btn");
+
+      loginInProgress = true;
+      ui.setLoading(button, true);
+
       try {
-        const res = await api.post('/auth/register', {
-          name: document.getElementById('signup-name').value,
-          email: document.getElementById('signup-email').value,
-          password: document.getElementById('signup-password').value,
-          role: document.getElementById('signup-role').value,
-          department: document.getElementById('signup-dept').value,
+        const response = await api.post("/auth/login", {
+          email: email,
+          password: password,
+          role: selectedRole
         });
-        auth.save(res.token, res.user);
-        ui.toast('Account created!', 'success');
-        setTimeout(() => {
-          window.location.href = res.user.role === 'manager' ? 'manager-dashboard.html' : 'employee-dashboard.html';
+
+        if (!response || !response.token || !response.user) {
+          throw new Error("Invalid email or password.");
+        }
+
+        if (
+          response.user.role !== selectedRole ||
+          !["employee", "manager"].includes(response.user.role)
+        ) {
+          showError(
+            "login-password",
+            "login-password-error",
+            "Invalid email or password."
+          );
+          return;
+        }
+
+        auth.save(response.token, response.user);
+
+        ui.toast(
+          "Welcome back, " + response.user.name + "!",
+          "success"
+        );
+
+        window.setTimeout(() => {
+          window.location.href =
+            response.user.role === "manager"
+              ? "manager-dashboard.html"
+              : "employee-dashboard.html";
         }, 600);
-      } catch (err) {
-        ui.toast(err.message || 'Signup failed', 'error');
-        ui.setLoading(btn, false);
+
+      } catch (error) {
+        // Keep authentication errors generic.
+        const message = error.message || "";
+
+        if (
+          message.toLowerCase().includes("network") ||
+          message.toLowerCase().includes("fetch")
+        ) {
+          ui.toast(
+            "Unable to connect to the server. Please try again.",
+            "error"
+          );
+        } else {
+          showError(
+            "login-password",
+            "login-password-error",
+            "Invalid email or password."
+          );
+        }
+      } finally {
+        loginInProgress = false;
+        ui.setLoading(button, false);
+      }
+    }
+
+    // --------------------------------------------------
+    // SIGNUP
+    // --------------------------------------------------
+
+    let signupInProgress = false;
+
+    document.getElementById("signupForm").addEventListener(
+      "submit",
+      handleSignup
+    );
+
+    async function handleSignup(event) {
+      event.preventDefault();
+
+      if (signupInProgress) return;
+
+      clearErrors("signup");
+
+      const nameInput = document.getElementById("signup-name");
+      const name = nameInput.value.trim();
+
+      let valid = true;
+
+      if (!name) {
+        showError(
+          "signup-name",
+          "signup-name-error",
+          "Full name is required."
+        );
+        valid = false;
+      } else if (name.length > 100) {
+        showError(
+          "signup-name",
+          "signup-name-error",
+          "Name cannot exceed 100 characters."
+        );
+        valid = false;
+      }
+
+      if (
+        !validateEmailField("signup-email", "signup-email-error")
+      ) {
+        valid = false;
+      }
+
+      if (!validateSignupPassword()) {
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value;
+      const department = document.getElementById("signup-dept").value.trim();
+      const button = document.getElementById("signup-btn");
+
+      signupInProgress = true;
+      ui.setLoading(button, true);
+
+      try {
+        const response = await api.post("/auth/register", {
+          name: name,
+          email: email,
+          password: password,
+          role: "employee",
+          department: department
+        });
+
+        if (!response || !response.token || !response.user) {
+          throw new Error("Registration response was incomplete.");
+        }
+
+        if (response.user.role !== "employee") {
+          ui.toast(
+            "Unexpected account role. Please contact the administrator.",
+            "error"
+          );
+          return;
+        }
+
+        auth.save(response.token, response.user);
+
+        ui.toast("Employee account created successfully!", "success");
+
+        window.setTimeout(() => {
+          window.location.href = "employee-dashboard.html";
+        }, 600);
+
+      } catch (error) {
+        const message = error.message || "";
+
+        if (
+          message.toLowerCase().includes("network") ||
+          message.toLowerCase().includes("fetch")
+        ) {
+          ui.toast(
+            "Unable to connect to the server. Please try again.",
+            "error"
+          );
+        } else if (
+          message.toLowerCase().includes("already exists") ||
+          message.toLowerCase().includes("duplicate") ||
+          message.toLowerCase().includes("already registered")
+        ) {
+          showError(
+            "signup-email",
+            "signup-email-error",
+            "This email is already registered. Please sign in."
+          );
+        } else {
+          ui.toast(message || "Signup failed. Please try again.", "error");
+        }
+      } finally {
+        signupInProgress = false;
+        ui.setLoading(button, false);
       }
     }
   </script>
 </body>
+
 </html>

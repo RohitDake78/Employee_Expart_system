@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -7,39 +8,52 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide a name'],
       trim: true,
-      maxlength: [50, 'Name cannot exceed 50 characters'],
+      maxlength: [100, 'Name cannot exceed 100 characters'],
     },
+
     email: {
       type: String,
       required: [true, 'Please provide an email'],
       unique: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
+      trim: true,
+      maxlength: [254, 'Email cannot exceed 254 characters'],
+      match: [
+        /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z]{2,63})+$/,
+        'Please provide a valid email address',
+      ],
     },
+
     password: {
       type: String,
       required: [true, 'Please provide a password'],
-      minlength: [6, 'Password must be at least 6 characters'],
+      minlength: [8, 'Password must be at least 8 characters'],
+      maxlength: [128, 'Password cannot exceed 128 characters'],
       select: false,
     },
+
     role: {
       type: String,
       enum: ['manager', 'employee'],
       default: 'employee',
     },
+
     department: {
       type: String,
       trim: true,
       default: 'General',
     },
+
     avatar: {
       type: String,
       default: '',
     },
+
     isActive: {
       type: Boolean,
       default: true,
     },
+
     lastLogin: {
       type: Date,
     },
@@ -47,17 +61,17 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+// Hash password only when it changes.
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
-// Method to compare password
+// Compare entered password with stored hash.
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);
