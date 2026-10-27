@@ -1,0 +1,7 @@
+$env:MANAGER_EMAIL="pb@gmail.com"
+$env:MANAGER_PASSWORD="123456"
+
+$env:EMPLOYEE_EMAIL="dakerohit007@gmail.com"
+$env:EMPLOYEE_PASSWORD="123456"
+
+before run node test.js run this in terminal
